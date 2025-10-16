@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📘 trupe call list</title>
+  <style>
+    /* ✨ Background & Layout */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: url('https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      backdrop-filter: blur(6px);
+
+    }
+
+    h1 {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 2.3rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ✨ Form Styling */
+    form {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 25px;
+      border-radius: 15px;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 25px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    input {
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    button {
+      padding: 10px;
+      background: linear-gradient(135deg, #ffcc70, #ff8177);
+      color: #222;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: 0.3s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    /* ✨ Contacts List */
+    #contacts {
+      margin-top: 40px;
+      width: 90%;
+      max-width: 650px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    #contacts h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #fffa;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    .contact {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      transition: 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .contact:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .contact span {
+      flex: 1;
+      font-size: 1rem;
+      color: #fff;
+    }
+
+    .actions button {
+      margin-left: 8px;
+      background: linear-gradient(135deg, #f8f9d2, #e8dbfc);
+      color: #222;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .actions button:hover {
+      background: linear-gradient(135deg, #e6f0ff, #fff6d2);
+      transform: scale(1.07);
+    }
+
+    /* ✨ Responsive */
+    @media (max-width: 600px) {
+      form, #contacts {
+        width: 90%;
+      }
+      .contact {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .actions {
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📘 super hero phone book</h1>
+
+  <form id="contactForm">
+    <input type="text" id="fullName" placeholder="Full Name" required />
+    <input type="number" id="phoneNumber" placeholder="Phone Number" required />
+    <button type="submit">Add Contact</button>
+  </form>
+
+  <div id="contacts"></div>
+
+  <script>
+    const API_BASE = "https://phonebook-server-m40k.onrender.com/api";
+    const form = document.getElementById("contactForm");
+    const contactsDiv = document.getElementById("contacts");
+
+    // ✅ Fetch all contacts
+    async function getContacts() {
+      const res = await fetch(`${API_BASE}/all/contacts`);
+      const data = await res.json();
+      displayContacts(data);
+    }
+
+    // ✅ Display contacts
+    function displayContacts(contacts) {
+      contactsDiv.innerHTML = "<h2>All Contacts</h2>";
+      if (contacts.length === 0) {
+        contactsDiv.innerHTML += "<p>No contacts found.</p>";
+        return;
+      }
+      contacts.forEach(contact => {
+        const div = document.createElement("div");
+        div.className = "contact";
+        div.innerHTML = `
+          <span><b>${contact.fullName}</b> - ${contact.phoneNumber}</span>
+          <div class="actions">
+            <button onclick="editContact('${contact._id}', '${contact.fullName}', '${contact.phoneNumber}')">✏️ Edit</button>
+            <button onclick="deleteContact('${contact._id}')">🗑️ Delete</button>
+          </div>
+        `;
+        contactsDiv.appendChild(div);
+      });
+    }
+
+    // ✅ Add new contact
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById("fullName").value.trim();
+      const phoneNumber = document.getElementById("phoneNumber").value.trim();
+
+      if (!fullName || !phoneNumber) return alert("All fields required!");
+
+      await fetch(`${API_BASE}/save/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, phoneNumber })
+      });
+
+      form.reset();
+      getContacts();
+    });
+
+    // ✅ Delete contact
+    async function deleteContact(id) {
+      if (!confirm("Are you sure you want to delete this contact?")) return;
+      await fetch(`${API_BASE}/delete/contact/${id}`, { method: "DELETE" });
+      getContacts();
+    }
+
+    // ✅ Edit contact
+    async function editContact(id, oldName, oldPhone) {
+      const fullName = prompt("Enter new name:", oldName);
+      const phoneNumber = prompt("Enter new phone number:", oldPhone);
+      if (!fullName || !phoneNumber) return alert("Invalid input!");
+
+      await fetch(`${API_BASE}/update/contact/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, phoneNumber })
+      });
+
+      getContacts();
+    }
+
+    // Initial fetch
+    getContacts();
+  </script>
+
+</body>
+</html>
